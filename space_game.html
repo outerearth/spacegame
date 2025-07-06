@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outer Earth Space Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    canvas {
+      display: block;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let spaceship = {
+      x: canvas.width / 2 - 20,
+      y: canvas.height - 60,
+      width: 50,
+      height: 50,
+      speed: 10,
+    };
+
+    let spaceshipImg = new Image();
+    spaceshipImg.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Space_Shuttle_Vector.svg/2048px-Space_Shuttle_Vector.svg.png";
+
+    let keys = {};
+    document.addEventListener("keydown", (e) => (keys[e.key] = true));
+    document.addEventListener("keyup", (e) => (keys[e.key] = false));
+
+    let asteroids = [];
+    let score = 0;
+
+    function spawnAsteroid() {
+      asteroids.push({
+        x: Math.random() * canvas.width,
+        y: -50,
+        size: 30 + Math.random() * 30,
+        speed: 2 + Math.random() * 4,
+      });
+    }
+
+    function update() {
+      if (keys["ArrowLeft"] && spaceship.x > 0) spaceship.x -= spaceship.speed;
+      if (keys["ArrowRight"] && spaceship.x + spaceship.width < canvas.width)
+        spaceship.x += spaceship.speed;
+
+      asteroids.forEach((asteroid, i) => {
+        asteroid.y += asteroid.speed;
+        if (
+          asteroid.x < spaceship.x + spaceship.width &&
+          asteroid.x + asteroid.size > spaceship.x &&
+          asteroid.y < spaceship.y + spaceship.height &&
+          asteroid.y + asteroid.size > spaceship.y
+        ) {
+          alert("Game Over! Score: " + score);
+          document.location.reload();
+        }
+        if (asteroid.y > canvas.height) {
+          asteroids.splice(i, 1);
+          score++;
+          document.getElementById("score").textContent = "Score: " + score;
+        }
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(spaceshipImg, spaceship.x, spaceship.y, spaceship.width, spaceship.height);
+      asteroids.forEach((asteroid) => {
+        ctx.beginPath();
+        ctx.arc(asteroid.x, asteroid.y, asteroid.size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = "gray";
+        ctx.fill();
+        ctx.closePath();
+      });
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    setInterval(spawnAsteroid, 1000);
+    loop();
+  </script>
+</body>
+</html>
